@@ -1,7 +1,6 @@
 package handlingerrors
 
 import datastructure._
-import scala.annotation._
 
 sealed trait Either[+E, +A] {
 

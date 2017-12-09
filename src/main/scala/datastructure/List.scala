@@ -35,7 +35,24 @@ sealed trait List[+A] {
     List.foldLeft(this, false)((z, x) => z || f(x))
   }
 
-  def map1[B](f: A => B): List[B] = List.map1(this)(f)
+  def map1[B](f: A => B): List[B] = this match {
+    case Cons(x, xs) => Cons(f(x), xs.map1(f))
+    case Nil => Nil
+  }
+
+  def foldRight[B](z: B)(f: (A, B) => B): B = {
+    this match {
+      case Cons(x, xs) => f(x, xs.foldRight(z)(f))
+      case Nil => z
+    }
+  }
+
+  def map2[B](f: A => B): List[B] = foldRight(Nil: List[B])((a, z) => Cons(f(a), z))
+
+  def filter(f: A => Boolean): List[A] = foldRight(Nil: List[A]) {
+    case (a, z) if f(a) => Cons(a, z)
+    case (_, z) => z
+  }
 }
 case object Nil extends List[Nothing] {
   override def toString: String = "Nil"
