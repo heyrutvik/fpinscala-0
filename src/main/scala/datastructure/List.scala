@@ -38,7 +38,7 @@ sealed trait List[+A] {
   def map1[B](f: A => B): List[B] = List.map1(this)(f)
 }
 case object Nil extends List[Nothing] {
-  override def toString: String = "||"
+  override def toString: String = "Nil"
 }
 case class Cons[+A](h: A, t: List[A]) extends List[A] {
   override def toString: String = h.toString + ", " + t

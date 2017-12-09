@@ -1,7 +1,8 @@
 package handlingerrors
 
 import java.util.regex.{Pattern, PatternSyntaxException}
-import datastructure.List
+import datastructure._
+import annotation._
 
 trait Option[+A] {
 
@@ -28,6 +29,16 @@ trait Option[+A] {
   def filter(f: A => Boolean): Option[A] = this match {
     case s @ Some(x) if f(x) => s
     case None => None
+  }
+
+  def isDefined: Boolean = this match {
+    case Some(_) => true
+    case None => false
+  }
+
+  def get: A = this match {
+    case Some(x) => x
+    case None => throw new Throwable("get method on None undefined")
   }
 }
 
@@ -69,5 +80,36 @@ object Option {
     }
   }
 
-  def sequence[A](l: List[Option[A]]): Option[List[A]] = ???
+  def sequence[A](l: List[Option[A]]): Option[List[A]] = {
+    @tailrec def go(l: List[Option[A]], acc: List[A]): List[A] = l match {
+      case Cons(Some(x), xs) => go(xs, Cons(x, acc))
+      case Cons(_, _) => Nil
+      case Nil => List.reverse1(acc)
+    }
+    val g = go(l, Nil)
+    if (List.length1(g) > 0) Some(g) else None
+  }
+
+  def parsePatterns(l: List[String]): Option[List[Pattern]] =
+    sequence(l map1 (pattern _))
+
+  def traverse[A, B](l: List[A])(f: A => Option[B]): Option[List[B]] = {
+    @tailrec def go(l: List[A], acc: List[B]): List[B] = l match {
+      case Cons(x, xs) if f(x).isDefined => go(xs, Cons(f(x).get, acc))
+      case Cons(x, xs) => Nil
+      case _ => List.reverse1(acc)
+    }
+    val g = go(l, Nil)
+    if (List.length1(g) > 0) Some(g) else None
+  }
+
+  val s1: List[Int] = Cons(1, Cons(2, Cons(3, Nil)))
+
+  val s2: List[Option[Int]] = Cons(Some(1), Cons(Some(2), Cons(Some(3), Nil)))
+
+  val s3: List[Option[Int]] = Cons(Some(1), Cons(None, Cons(Some(3), Nil)))
+
+  def sequence1[A](l: List[Option[A]]): Option[List[A]] = traverse(l)(x => x)
+
+  def parsePatterns1(l: List[String]): Option[List[Pattern]] = traverse(l)(pattern _)
 }
