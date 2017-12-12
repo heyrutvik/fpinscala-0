@@ -35,6 +35,10 @@ sealed trait List[+A] {
     List.foldLeft(this, false)((z, x) => z || f(x))
   }
 
+  def exists1(p: A => Boolean): Boolean = {
+    List.foldRight(this, false)((a, b) => p(a) || b) // {println(s"$a"); p(a) || b}
+  }
+
   def map1[B](f: A => B): List[B] = this match {
     case Cons(x, xs) => Cons(f(x), xs.map1(f))
     case Nil => Nil
@@ -126,9 +130,14 @@ object List {
   }
 
   def foldRight[A,B](l: List[A], z: B)(f: (A, B) => B): B = l match {
+    case Cons(x, xs) => {
+      //println(s" => $x")
+      f(x, foldRight(xs, z)(f))
+    }
     case Nil => z
-    case Cons(x, xs) => f(x, foldRight(xs, z)(f))
   }
+
+  def t1 = List(1,2,3,4,5,6,7,8,9,10,11,12,13,14).exists1(_ == 5) // uncomment foldRight Cons println
 
   def sum1(l: List[Int]): Int = foldRight(l, 0)(_ + _)
 
