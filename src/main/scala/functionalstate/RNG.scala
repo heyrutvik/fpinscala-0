@@ -122,4 +122,14 @@ object RNG {
       val (a, s1) = action(rng)
       f(a)(s1)
   }
+
+  def map1[A, B](action: RandAction[A])(f: A => B): RandAction[B] = flatMap(action)(v => unit(f(v)))
+
+  def map3[A,B,C](action1: RandAction[A], action2: RandAction[B])(f: (A,B) => C): RandAction[C] = {
+    flatMap(action1) { v1 =>
+      flatMap(action2) { v2 =>
+        unit(f(v1, v2))
+      }
+    }
+  }
 }
