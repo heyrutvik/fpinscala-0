@@ -56,4 +56,68 @@ object RNG {
     }
     go(Nil, rng, count)
   }
+
+  /**
+    * better API for state actions
+    */
+
+  type Rand[+A] = RNG => (A, RNG)
+
+  val int: Rand[Int] = r => r.nextInt
+
+  def unit[A](a: A): Rand[A] = rng => (a, rng)
+
+  def map[A, B](s: Rand[A])(f: A => B): Rand[B] = {
+    rng => {
+      val (v, s1) = s(rng)
+      (f(v), s1)
+    }
+  }
+
+  //def positiveMax1(n: Int)(rng: RNG): (Int, RNG) = map(_.nextInt)(_ % n)(rng)
+  def positiveMax(n: Int): Rand[Int] = map(_.nextInt)(_ % n)
+
+  def double1: Rand[Double] = map(_.nextInt)(_ / Int.MaxValue.toDouble)(_)
+
+  def map2[A,B,C](ra: Rand[A], rb: Rand[B])(f: (A,B) => C): Rand[C] = {
+    rng => {
+      val (i, s1) = ra(rng)
+      val (d, s2) = rb(s1)
+      (f(i, d), s2)
+    }
+  }
+
+  def intDouble: Rand[(Int, Double)] = map2(positiveMax(Int.MaxValue), double1)((_, _))
+
+  def doubleInt: Rand[(Double, Int)] = map2(double1, positiveMax(Int.MaxValue))((_, _))
+
+  def identity[A](x: A) = x
+
+  def sequence[A](fs: List[(Rand[A])]): Rand[List[A]] = {
+    rnd => {
+      def go(l: List[(Rand[A])], acc: List[A], s: RNG): (List[A], RNG) = {
+        l match {
+          case r :: rs =>
+            val (a, rnd1) = map(r)(identity)(s)
+            go(rs, a :: acc, rnd1)
+          case _ => (acc.reverse, s)
+        }
+      }
+      go(fs, Nil, rnd)
+    }
+  }
+
+  def ints1(count: Int): Rand[List[Int]] = sequence(List.fill(count)(_.nextInt))
+
+  def positiveInt1: Rand[Int] = {
+    map(int) { i =>
+      if (i != Int.MaxValue) i.abs else ???
+    }
+  }
+
+  def flatMap[A,B](s: Rand[A])(f: A => Rand[B]): Rand[B] = {
+    rng =>
+      val (a, s1) = map(s)(identity)(rng)
+      f(a)(s1)
+  }
 }
