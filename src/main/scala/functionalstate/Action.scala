@@ -23,6 +23,15 @@ case class Action[S, +V](run: S => (V, S)) {
     val (v2, s2) = action.run(s1)
     (f(v1, v2), s2)
   })
+
+  def get[A]: Action[A, S] = ???
+
+  def set(s: S): Action[S, Unit] = new Action(_ => ((), s))
+
+  def modify(f: S => S): Action[S, Unit] = for {
+    s <- get
+    _ <- set(f(s))
+  } yield ()
 }
 
 object Action {

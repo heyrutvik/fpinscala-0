@@ -132,4 +132,12 @@ object RNG {
       }
     }
   }
+
+  def t = flatMap(int) { x =>
+    flatMap(int) { y =>
+      map1(ints1(x)) { xs =>
+        xs.map(_ % y)
+      }
+    }
+  }
 }
