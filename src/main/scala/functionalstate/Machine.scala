@@ -1,0 +1,26 @@
+package functionalstate
+
+case class Machine(locked: Boolean, candies: Int, coins: Int)
+
+sealed trait Input
+case object Coin extends Input
+case object Turn extends Input
+
+object Machine {
+
+  type M[+A] = Action[Machine, Int]
+
+  def update(i: Input)(m: Machine): Machine  = {
+    (i, m) match {
+      case (_, Machine(_, 0, _)) => m // no candies
+      case (Coin, Machine(false, _, _)) => m // machine already unlocked
+      case (Coin, Machine(true, candy, coin)) => Machine(false, candy, coin + 1) // add coin
+      case (Turn, Machine(false, candy, coin)) => Machine(true, candy - 1, coin)
+      case (Turn, Machine(true, _, _)) => m // turning on locked machine do nothing
+    }
+  }
+
+  def simulateMachine(inputs: List[Input]): M[Int] = ???
+
+  def test = simulateMachine(List(Coin, Turn, Coin, Turn, Coin, Turn, Coin, Turn))
+}
