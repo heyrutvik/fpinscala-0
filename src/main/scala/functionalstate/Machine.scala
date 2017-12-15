@@ -1,5 +1,7 @@
 package functionalstate
 
+import Action._
+
 case class Machine(locked: Boolean, candies: Int, coins: Int)
 
 sealed trait Input
@@ -20,7 +22,10 @@ object Machine {
     }
   }
 
-  def simulateMachine(inputs: List[Input]): M[Int] = ???
+  def simulateMachine(inputs: List[Input]): M[Int] = for {
+    _ <- sequence(inputs.map(i => modify(update(i))))
+    s <- get
+  } yield (s.coins)
 
   def test = simulateMachine(List(Coin, Turn, Coin, Turn, Coin, Turn, Coin, Turn))
 }
