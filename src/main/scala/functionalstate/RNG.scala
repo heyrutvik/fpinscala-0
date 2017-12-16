@@ -9,11 +9,12 @@ trait RNG {
 object RNG {
 
   def simple(seed: Long): RNG = new RNG {
-    val seed2 =
-      (seed*0x5DEECE66DL + 0xBL) &
-      ((1L << 48) - 1)
-
-    def nextInt = ((seed2 >>> 16).asInstanceOf[Int], simple(seed2))
+    def nextInt = {
+      val seed2 =
+        (seed*0x5DEECE66DL + 0xBL) &
+          ((1L << 48) - 1)
+      ((seed2 >>> 16).asInstanceOf[Int], simple(seed2))
+    }
   }
 
   def positiveInt(rng: RNG): (Int, RNG) = {
@@ -96,7 +97,7 @@ object RNG {
       @tailrec def go(as: List[(RandAction[A])], acc: List[A], s: RNG): (List[A], RNG) = {
         as match {
           case h :: t =>
-            val (v, rng1) = h(rng)
+            val (v, rng1) = h(s)
             go(t, v :: acc, rng1)
           case _ => (acc.reverse, s)
         }
@@ -106,7 +107,7 @@ object RNG {
   }
 
   def sequence1[A](actions: List[RandAction[A]]): RandAction[List[A]] = {
-    actions.foldRight(unit(Nil: List[A]))((a, z) => map2(a, z)(_ :: _))
+    actions.foldRight(unit[List[A]](Nil))((a, z) => map2(a, z)(_ :: _))
   }
 
   def ints1(count: Int): RandAction[List[Int]] = sequence(List.fill(count)(int))
