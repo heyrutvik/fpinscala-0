@@ -53,7 +53,7 @@ object Par {
 
   def map2[A, B, C](p1: Par[A], p2: Par[B])(f: (A, B) => C): Par[C] = {
     map(product(p1, p2)) {
-      case (a,b) => f(a,b)
+      case (a, b) => f(a, b)
     }
   }
 
@@ -61,10 +61,48 @@ object Par {
     l.foldRight(unit[List[A]](Nil))((a, z) => map2(a, z)(_ :: _))
   }
 
-  def parMap[A,B](l: List[A])(f: A => B): Par[List[B]] = {
+  def parMap[A, B](l: List[A])(f: A => B): Par[List[B]] = {
     fork {
-      val fbs: List[Par[B]] = l.map(asyncF(f))
-      sequence(fbs)
+      sequence(l.map(asyncF(f)))
     }
   }
+
+  def parFilter[A](l: List[A])(f: A => Boolean): Par[List[A]] = {
+    fork {
+      sequence(l.filter(f).map(unit))
+    }
+  }
+
+  def equals[A](e: ExecutorService)(p1: Par[A], p2: Par[A]): Boolean =
+    p1(e).get == p2(e).get
+
+  def test1 = {
+    val a = async(42 + 1)
+    val s = Executors.newFixedThreadPool(1)
+    println(Par.equals(s)(a, fork(a)))
+  }
+
+  def delay[A](a: => Par[A]): Par[A] = { s =>
+    a(s)
+  }
+
+  def choiceN[A](a: Par[Int])(choices: List[Par[A]]): Par[A] = { s =>
+    run(s)(a).get match {
+      case a if a > 0 && a < choices.length => choices(a)(s)
+    }
+  }
+
+  def choice[A](a: Par[Boolean])(ifTrue: Par[A], ifFalse: Par[A]): Par[A] = {
+    choiceN(map(a)(if (_) 1 else 0))(List(ifFalse, ifTrue))
+  }
+
+  def choiceMap[A, B](a: Par[A])(choices: Map[A, Par[B]]): Par[B] = { s =>
+    run(s)(choices(run(s)(a).get()))
+  }
+
+  def flatMap[A, B](a: Par[A])(f: A => Par[B]): Par[B] = { s =>
+    run(s)(f(run(s)(a).get))
+  }
+
+  def join[A](a: Par[Par[A]]): Par[A] = flatMap(a)(identity)
 }
