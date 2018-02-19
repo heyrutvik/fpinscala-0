@@ -17,5 +17,10 @@ object Gen {
       Stream(start until stopExclusive: _*))
   }
 
-  def listOfN[A](n: Int, g: Gen[A]): Gen[List[A]] = ???
+  def listOfN[A](n: Int, g: Gen[A]): Gen[List[A]] = {
+    Gen(
+      Action.sequence(List.fill(n)(g.sample)),
+      Stream.empty
+    )
+  }
 }
