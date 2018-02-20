@@ -11,7 +11,7 @@ object RNG {
   def simple(seed: Long): RNG = new RNG {
     def nextInt = {
       val seed2 =
-        (seed*0x5DEECE66DL + 0xBL) &
+        (seed * 0x5DEECE66DL + 0xBL) &
           ((1L << 48) - 1)
       ((seed2 >>> 16).asInstanceOf[Int], simple(seed2))
     }
@@ -20,7 +20,7 @@ object RNG {
   def positiveInt(rng: RNG): (Int, RNG) = {
     rng.nextInt match {
       case (Int.MinValue, nextState) => positiveInt(nextState)
-      case r @ (x, _) if x > 0 => r
+      case r@(x, _) if x > 0 => r
       case (x, nextState) => (x.abs, nextState)
     }
   }
@@ -55,6 +55,7 @@ object RNG {
       if (n > 0) go(s, i :: acc, n - 1)
       else (acc, s)
     }
+
     go(rng, Nil, count)
   }
 
@@ -65,6 +66,12 @@ object RNG {
   type RandAction[+A] = RNG => (A, RNG)
 
   val int: RandAction[Int] = s => s.nextInt
+
+  val boolean: RandAction[Boolean] = { s =>
+    s.nextInt match {
+      case (i, s2) => (i % 2 == 0, s2)
+    }
+  }
 
   def unit[A](a: A): RandAction[A] = rng => (a, rng)
 
@@ -80,7 +87,7 @@ object RNG {
 
   def double1: RandAction[Double] = map(int)(_ / Int.MaxValue.toDouble)
 
-  def map2[A,B,C](action1: RandAction[A], action2: RandAction[B])(f: (A,B) => C): RandAction[C] = {
+  def map2[A, B, C](action1: RandAction[A], action2: RandAction[B])(f: (A, B) => C): RandAction[C] = {
     rng => {
       val (i, s1) = action1(rng)
       val (d, s2) = action2(s1)
@@ -102,6 +109,7 @@ object RNG {
           case _ => (acc.reverse, s)
         }
       }
+
       go(actions, Nil, rng)
     }
   }
@@ -118,7 +126,7 @@ object RNG {
     }
   }
 
-  def flatMap[A,B](action: RandAction[A])(f: A => RandAction[B]): RandAction[B] = {
+  def flatMap[A, B](action: RandAction[A])(f: A => RandAction[B]): RandAction[B] = {
     rng =>
       val (a, s1) = action(rng)
       f(a)(s1)
@@ -126,7 +134,7 @@ object RNG {
 
   def map1[A, B](action: RandAction[A])(f: A => B): RandAction[B] = flatMap(action)(v => unit(f(v)))
 
-  def map3[A,B,C](action1: RandAction[A], action2: RandAction[B])(f: (A,B) => C): RandAction[C] = {
+  def map3[A, B, C](action1: RandAction[A], action2: RandAction[B])(f: (A, B) => C): RandAction[C] = {
     flatMap(action1) { v1 =>
       flatMap(action2) { v2 =>
         unit(f(v1, v2))
