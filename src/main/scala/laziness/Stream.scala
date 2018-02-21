@@ -80,11 +80,15 @@ sealed trait Stream[+A] {
   def flatMap[B](f: A => Stream[B]): Stream[B] =
     foldRight(empty: Stream[B])((a,z) => f(a).append(z))
 
-  def map2[B](f: A => B): Stream[B] = unfold(this) { s =>
+  def map_2[B](f: A => B): Stream[B] = unfold(this) { s =>
     s.uncons match {
       case Some((a, as)) => Some((f(a), as))
       case _ => None
     }
+  }
+
+  def map2[B, C](s: Stream[B])(f: (A,B) => C): Stream[C] = {
+    for (a <- this; b <- s) yield (f(a, b))
   }
 
   def takeWhile2(p: A => Boolean): Stream[A] = unfold(this) { s =>
@@ -186,7 +190,7 @@ object Stream {
   def ones = constant(1)
 
   def startWith[A](s1: Stream[A], s2: Stream[A]): Boolean = {
-    s1.zip(s2).map2{case (x, y) => x == y}.forall(_ == true)
+    s1.zip(s2).map_2{case (x, y) => x == y}.forall(_ == true)
   }
 
   def sum(a: Stream[Int]): Int = a.foldRight(0)(_ + _)

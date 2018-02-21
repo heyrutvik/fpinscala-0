@@ -4,7 +4,34 @@ import functionalstate.{Action, RNG}
 import laziness._
 import testing.Gen.Domain
 
-case class Gen[+A](sample: Action[RNG, A], exhaustive: Domain[A])
+case class Gen[+A](sample: Action[RNG, A], exhaustive: Domain[A]) {
+
+  import Gen._
+
+  def map[B](f: A => B): Gen[B] = {
+    Gen(
+      sample.map(f),
+      exhaustive.map(x => x.map(f).orElse(None))
+    )
+  }
+
+  def map2[B, C](g: Gen[B])(f: (A, B) => C): Gen[C] = {
+    Gen(
+      sample.map2(g.sample)(f),
+      exhaustive.map2(g.exhaustive) {
+        case (Some(a), Some(b)) => Option(f(a, b))
+        case _ => None
+      }
+    )
+  }
+
+  def flatMap[B](f: A => Gen[B]): Gen[B] = {
+    Gen(
+      sample.flatMap(f(_).sample),
+      exhaustive.flatMap(x => x.map(f(_).exhaustive).getOrElse(unbounded))
+    )
+  }
+}
 
 object Gen {
 
@@ -36,4 +63,17 @@ object Gen {
 
   def choose(start: Double, stopExclusive: Double): Gen[Double] =
     Gen(Action(RNG.double1).map(i => start + i * (stopExclusive - i)), unbounded)
+
+  def even(start: Int, stopExclusive: Int): Gen[Int] =
+    choose(start, if (stopExclusive % 2 == 0) stopExclusive - 1 else stopExclusive).
+      map(n => if (n % 2 != 0) n + 1 else n)
+
+  def odd(start: Int, stopExclusive: Int): Gen[Int] =
+    choose(start, if (stopExclusive % 2 != 0) stopExclusive - 1 else stopExclusive).
+      map(n => if (n % 2 == 0) n + 1 else n)
+
+  def sameParity(from: Int, to: Int): Gen[(Int, Int)] = for {
+    i <- choose(from, to)
+    j <- if (i % 2 == 0) even(from, to) else odd(from, to)
+  } yield (i, j)
 }
