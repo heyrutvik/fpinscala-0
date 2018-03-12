@@ -47,6 +47,9 @@ object Gen {
 
   def boolean: Gen[Boolean] = Gen(Action(RNG.boolean), bounded(Stream(false, true)))
 
+  def stringN(n: Int): Gen[String] =
+    listOfN(n, choose(0,127)).map(_.map(_.toChar).mkString)
+
   def choose(start: Int, stopExclusive: Int): Gen[Int] = {
     Gen(
       Action(RNG.positiveInt1).map(i => start + i % (stopExclusive - start)),

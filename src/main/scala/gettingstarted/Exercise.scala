@@ -30,5 +30,7 @@ object Exercise {
 
   def uncurry[A,B,C](f: A => B => C): (A, B) => C = {(a: A, b: B) => f(a)(b)} // = f(_, _)
 
+  def identity[A](x: A): A = x
+
   def compose[A,B,C](f: B => C, g: A => B): A => C = {(a: A) => f(g(a))} // = f(g(_))
 }
