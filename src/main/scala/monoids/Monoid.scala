@@ -64,5 +64,22 @@ object Monoid {
 
   def foldMap[A, B](as: List[A], m: Monoid[B])(f: A => B): B = as.map(f).foldLeft(m.zero)(m.op)
 
+  def foldMapV[A, B](as: IndexedSeq[A], m: Monoid[B])(f: A => B): B =
+    if (as.length == 0)
+      m.zero
+    else if (as.length == 1)
+      f(as(0))
+    else {
+      val (l, r) = as.splitAt(as.length / 2)
+      m.op(foldMapV(l, m)(f), foldMapV(r, m)(f))
+    }
+
+
   def foldLeft[A, B](as: List[A])(z: B)(f: (B, A) => B): B = ???
 }
+
+sealed trait WC
+
+case class Stub(chars: String) extends WC
+
+case class Part(lStub: String, words: Int, rStub: String) extends WC
