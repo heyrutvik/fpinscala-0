@@ -1,10 +1,11 @@
-package typeclass
+package catslib.typeclasses
 
 sealed trait Json
 case class JsObject(value: Map[String, Json]) extends Json
 case class JsString(value: String) extends Json
 case class JsInt(value: Int) extends Json
 case class JsDouble(value: Double) extends Json
+case class JsBoolean(value: Boolean) extends Json
 case object JsNil extends Json
 
 object Json {

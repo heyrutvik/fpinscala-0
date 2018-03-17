@@ -12,4 +12,7 @@ resolvers += "Artima Maven Repository" at "http://repo.artima.com/releases"
 
 logBuffered in Test := false
 
-scalacOptions += "-Ypartial-unification"
+scalacOptions ++= Seq(
+  "-Ypartial-unification",
+  "-language:higherKinds"
+)

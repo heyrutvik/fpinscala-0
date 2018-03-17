@@ -1,9 +1,8 @@
-package typeclass
+package catslib.typeclasses
 
-case class Person(name: String, age: Int, married: Option[Boolean])
+import JsonSyntax._
 
-object Person extends App {
-  import JsonSyntax._
+object JsonWriterTest extends App {
   val p1 = Person("p1", 26, Some(true))
   val p2 = Person("p2", 19, None)
   List(p1, p2).foreach { p =>
@@ -11,3 +10,5 @@ object Person extends App {
     println(p.toJson) // using
   }
 }
+
+case class Person(name: String, age: Int, married: Option[Boolean])
