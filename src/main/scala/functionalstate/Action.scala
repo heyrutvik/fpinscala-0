@@ -42,7 +42,9 @@ object Action {
     _ <- set(f(s))
   } yield ()
 
-  def modify1[S](f: S => S): Action[S, Unit] = get.flatMap { s =>
-    set(f(s))
+  def modify1[S](f: S => S): Action[S, Unit] = {
+    get.flatMap { s =>
+      set(f(s))
+    }
   }
 }

@@ -28,9 +28,8 @@ object Machine {
   } yield (s.coins)
 
   def simulateMachine1(inputs: List[Input]): M[Int] = {
-    sequence(inputs.map(i => modify(update(i)))).flatMap { v =>
-      get.map(s => s.coins)
-    }
+    val m = inputs.map(i => modify(update(i)))
+    sequence(m).flatMap { _ => get.map(s => s.coins) }
   }
 
   def test = simulateMachine(List(Coin, Turn, Coin, Turn, Coin, Turn, Coin, Turn))
