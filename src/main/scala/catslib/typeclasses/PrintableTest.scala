@@ -4,6 +4,7 @@ import PrintableInstances._
 import PrintableSyntax._
 import cats.implicits._
 import cats.kernel.Eq
+import catslib.functors.Box
 
 object PrintableTest extends App {
 
@@ -18,6 +19,8 @@ object PrintableTest extends App {
 
   c1 === c2
   optionCat1 =!= optionCat2
+
+  Box(true).print
 }
 
 case class Cat(name: String, age: Int, color: String)
