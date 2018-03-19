@@ -1,8 +1,9 @@
 package catslib.functors
 
 import cats.Functor
-import cats.implicits._
 import Tree._
+import cats.implicits._
+import catslib.typeclasses.Printable
 
 object Exercise extends App {
   val box = Box[Int](123)
@@ -27,4 +28,6 @@ object Box {
   implicit val boxFunctor: Functor[Box] = new Functor[Box] {
     override def map[A, B](fa: Box[A])(f: A => B): Box[B] = Box(f(fa.value))
   }
+
+  implicit def boxPrintable[A](implicit p: Printable[A]) = p.contramap[Box[A]](_.value)
 }
