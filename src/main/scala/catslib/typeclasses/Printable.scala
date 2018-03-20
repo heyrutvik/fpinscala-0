@@ -24,6 +24,7 @@ object PrintableInstances {
   implicit val stringFormat: Printable[String] = identity(_)
   implicit val booleanFormat: Printable[Boolean] = value => if (value) "yes" else "no"
   implicit val intFormat: Printable[Int] = value => value.toString
+  implicit val bigIntFormat: Printable[BigInt] = value => value.toString
   implicit val catFormat: Printable[Cat] = { value =>
     val name = Printable.format(value.name)
     val age = Printable.format(value.age)
