@@ -1,17 +1,20 @@
 package externaleffects
 
 object IOTest extends App {
-  def readLine: IO[String] = IO {
+  def ReadLine: IO[String] = IO {
     scala.io.StdIn.readLine
   }
 
-  def printLine(msg: String) = IO {
+  def PrintLine(msg: String) = IO {
     println(msg)
   }
 
   def getValueFromUser = for {
-    _ <- printLine("Enter a temperature in degrees fahrenheit: ")
-    d <- readLine.map(_.toDouble + 10)
-    _ <- printLine(d.toString)
+    _ <- PrintLine("add 10 to this number: ")
+    d <- ReadLine.map(_.toDouble + 10)
+    _ <- PrintLine(d.toString)
   } yield ()
+
+  val echo = ReadLine.flatMap(PrintLine)
+  val readInt = ReadLine.map(_.toInt)
 }
